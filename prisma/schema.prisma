@@ -1,0 +1,178 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id             String    @id @default(cuid())
+  supabaseId     String    @unique
+  email          String    @unique
+  name           String?
+  avatarUrl      String?
+  educationLevel String?
+  institution    String?
+  country        String?
+  timezone       String    @default("UTC")
+  plan           Plan      @default(FREE)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  exams          Exam[]
+  studyPlans     StudyPlan[]
+  progress       Progress[]
+  timetableSlots TimetableSlot[]
+  notes          Note[]
+  careerProfile  CareerProfile?
+  studySessions  StudySession[]
+  quizAttempts   QuizAttempt[]
+}
+
+enum Plan {
+  FREE
+  PRO
+  INSTITUTION
+}
+
+model Exam {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subject   String
+  examBoard String?
+  level     String?
+  examDate  DateTime
+  location  String?
+  notes     String?
+  color     String    @default("#3B82F6")
+  studyPlan StudyPlan?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model StudyPlan {
+  id            String        @id @default(cuid())
+  userId        String
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  examId        String?       @unique
+  exam          Exam?         @relation(fields: [examId], references: [id])
+  subject       String
+  syllabus      String        @db.Text
+  daysUntilExam Int
+  hoursPerDay   Float
+  level         String
+  planData      Json
+  totalHours    Float
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  topics        StudyTopic[]
+  pdfs          UploadedPdf[]
+}
+
+model StudyTopic {
+  id              String    @id @default(cuid())
+  studyPlanId     String
+  studyPlan       StudyPlan @relation(fields: [studyPlanId], references: [id], onDelete: Cascade)
+  name            String
+  priority        String
+  reason          String
+  timeAllocation  String
+  simpleExplain   String    @db.Text
+  icon            String
+  order           Int
+  mastered        Boolean   @default(false)
+  masteredAt      DateTime?
+  createdAt       DateTime  @default(now())
+}
+
+model UploadedPdf {
+  id         String     @id @default(cuid())
+  userId     String
+  studyPlanId String?
+  studyPlan  StudyPlan? @relation(fields: [studyPlanId], references: [id])
+  fileName   String
+  fileUrl    String
+  parsedText String?    @db.Text
+  summary    String?    @db.Text
+  fileSize   Int
+  uploadedAt DateTime   @default(now())
+}
+
+model Progress {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subject      String
+  scorePercent Float
+  examType     String?
+  notes        String?
+  recordedAt   DateTime @default(now())
+}
+
+model TimetableSlot {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  dayOfWeek   Int
+  startTime   String
+  endTime     String
+  subject     String
+  color       String   @default("#3B82F6")
+  isRecurring Boolean  @default(true)
+  week        Int?
+  createdAt   DateTime @default(now())
+}
+
+model StudySession {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subject      String
+  durationMins Int
+  mood         String?
+  startedAt    DateTime
+  endedAt      DateTime?
+}
+
+model Note {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  content   String   @db.Text
+  subject   String?
+  tags      String[]
+  aiSummary String?  @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model CareerProfile {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subjects        String[]
+  interests       String[]
+  targetCareers   String[]
+  dreamUniversity String?
+  targetCourse    String?
+  aiPathData      Json?
+  updatedAt       DateTime @updatedAt
+}
+
+model QuizAttempt {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subject       String
+  topicName     String
+  questions     Json
+  scorePercent  Float
+  timeTakenSecs Int
+  attemptedAt   DateTime @default(now())
+}
