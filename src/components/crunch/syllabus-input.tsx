@@ -193,7 +193,7 @@ function JsonNode({ value, depth = 0 }: { value: JsonValue; depth?: number }) {
   if (value === null) return <span className="text-rose-400">null</span>;
   if (typeof value === "boolean") return <span className="text-pink-400">{String(value)}</span>;
   if (typeof value === "number") return <span className="text-amber-400">{value}</span>;
-  if (typeof value === "string") return <span className="text-emerald-400">"{value}"</span>;
+  if (typeof value === "string") return <span className="text-emerald-400">&apos;{value}&apos;</span>;
 
   if (Array.isArray(value)) {
     if (value.length === 0) return <span className="text-slate-400">[]</span>;
@@ -237,7 +237,7 @@ function JsonNode({ value, depth = 0 }: { value: JsonValue; depth?: number }) {
         <div style={{ marginLeft: indent + 16 }}>
           {entries.map(([key, val], i) => (
             <div key={key} className="flex flex-wrap gap-1 items-start">
-              <span className="text-sky-300">"{key}"</span>
+              <span className="text-sky-300">&apos;{key}&apos;</span>
               <span className="text-slate-500">:</span>
               <JsonNode value={val} depth={depth + 1} />
               {i < entries.length - 1 && <span className="text-slate-500">,</span>}
